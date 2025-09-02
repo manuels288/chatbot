@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Noto+Sans+Hatran&display=swap"
+        rel="stylesheet">
+    <title>SAP S4/HANA Chatbot</title>
+</head>
+
+<body>
+
+
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-left">
+                <a href="#"> SAP-Chatbot </a>
+            </div>
+            <div class="navbar-right">
+                <div class="navbar-logo">
+                    <i class="fas fa-user-circle user-avatar"></i>
+                    <a href="#">test</a>
+                </div>
+            </div>
+
+        </div>
+    </nav>
+
+
+
+    <div class="main-container center">
+        <div class="chatbox hidden">
+            <div id="messages"></div>
+        </div>
+
+        <div class="user-input">
+            <div class="help-title">
+                <p> Hallo, wobei kann ich Ihnen helfen?</p>
+            </div>
+            <div class="input-box">
+                <textarea id="question" placeholder="Geben Sie Ihre Frage ein..."></textarea>
+                <button id="sendButton">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+          
+        </div>
+    </div>
+    <div class="footer">
+        <p>SAP-Chatbot - Informationsstand: 14.01.2025</p>
+    </div>
+</body>
+
+<script>
+    const messagesContainer = document.getElementById("messages");
+    const inputField = document.getElementById("question");
+    const sendButton = document.getElementById("sendButton");
+
+    /**
+     * Fügt eine neue Nachricht (vom Nutzer oder Bot) in den Chatverlauf ein
+     */
+    function addMessage(sender, message) {
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("message-container", sender);
+
+        const iconDiv = document.createElement("div");
+        iconDiv.classList.add("icon", sender);
+
+        const messageContent = document.createElement("div");
+        messageContent.classList.add("message");
+        messageContent.innerHTML = message;
+
+        if (sender === "user") {
+            iconDiv.innerHTML = "&#128100;"; // Benutzer-Icon
+            messageContent.style.backgroundColor = "#E8F5E9";
+            messageDiv.appendChild(messageContent);
+            messageDiv.appendChild(iconDiv);
+        } else {
+            iconDiv.innerHTML = "&#129302;"; // AI-Icon
+            messageContent.style.backgroundColor = "#e3f2fd";
+            messageDiv.appendChild(iconDiv);
+            messageDiv.appendChild(messageContent);
+        }
+
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+     /**
+     * Sendet die Nutzerfrage an die Flask-API und zeigt die Antwort des Chatbots an
+     */
+    async function getChatbotResponse(userMessage) {
+
+        addMessage("bot", '<i class="fas fa-spinner fa-spin"></i>'); // Spinner-Icon von Font Awesome
+
+        const response = await fetch("http://localhost:5000/api/ask", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ question: userMessage }),
+        });
+        const data = await response.json();
+
+
+        const lastBotMessage = messagesContainer.querySelector(".message-container.bot:last-child .message");
+        if (lastBotMessage) {
+            lastBotMessage.innerHTML = data.answer;
+        }
+    }
+
+    sendButton.addEventListener("click", async () => {
+        var element = document.getElementsByClassName("chatbox")[0];
+        element.classList.remove("hidden");
+
+        var element1 = document.getElementsByClassName("help-title")[0];
+        element1.classList.add("hidden");
+
+        var element2 = document.getElementsByClassName("main-container")[0];
+        element2.classList.remove("center");
+
+        const icons = document.querySelectorAll('.icon-links i');
+        icons.forEach(icon => {
+            icon.classList.add('icon-small');
+        });
+
+        const userMessage = inputField.value.trim();
+        if (!userMessage) return;
+
+        addMessage("user", userMessage);
+        inputField.value = "";
+
+        await getChatbotResponse(userMessage);
+    });
+</script>
