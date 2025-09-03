@@ -27,7 +27,7 @@ def init_pinecone():
 # -------------------------------------------------
 def init_embeddings():
     return OpenAIEmbeddings(model="text-embedding-3-small")
-    # ggf. austauschbar gegen andere LLMs
+    #open-source return OllamaLLM(model="llama3.2")
 
 
 # -------------------------------------------------
@@ -35,7 +35,7 @@ def init_embeddings():
 # -------------------------------------------------
 def init_llm():
     return ChatOpenAI(model_name="gpt-4o-mini")
-    # oder: OllamaLLM(model="llama3.2")
+    # open-source OllamaLLM(model="llama3.2")
 
 
 # -------------------------------------------------
@@ -60,7 +60,7 @@ def build_prompt():
 # -------------------------------------------------
 # Retriever Init 
 # -------------------------------------------------
-def init_retriever(pc, embeddings, index_name="myllmindex1"):
+def init_retriever(pc, embeddings, index_name="INDEX_NAME"):
     index = pc.Index(index_name)
     vectorstore = PineconeVectorStore(index=index, embedding=embeddings)
     return vectorstore.as_retriever()
@@ -119,7 +119,7 @@ def create_app():
         data = request.get_json()
         question = data.get("question")
         if not question:
-            return jsonify({"error": "❌ Keine Frage übergeben"}), 400
+            return jsonify({"error": "Keine Frage übergeben"}), 400
         try:
             response = chain_with_memory.invoke({"input": question})
             return jsonify({"answer": response})
@@ -134,4 +134,4 @@ def create_app():
 # -------------------------------------------------
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
